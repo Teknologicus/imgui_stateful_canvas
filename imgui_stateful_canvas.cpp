@@ -49,6 +49,19 @@ ImStatefulCanvas::ImStatefulCanvas(float x, float y, float width, float height) 
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void ImStatefulCanvas::setSize(float width, float height) {
+  width_  = width;
+  height_ = height;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void ImStatefulCanvas::setLocation(float x, float y) {
+  useCursorPosition_ = false;
+  x_                 = x;
+  y_                 = y;
+}
+    
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 int ImStatefulCanvas::line(const ImVec2 &p1, const ImVec2 &p2, ImU32 col, float thickness) {
   Line *line = new Line;
   line->p1[0]     = p1.x;
