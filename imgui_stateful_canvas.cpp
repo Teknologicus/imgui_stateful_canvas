@@ -343,9 +343,8 @@ void ImStatefulCanvas::show(const char *label) const {
   if (window->SkipItems)
     return;
 
-  ImDrawList *drawList = ImGui::GetWindowDrawList();
-  float      x,
-             y;
+  float x,
+        y;
   
   if (useCursorPosition_) {
     ImVec2 &pos = window->DC.CursorPos;
@@ -356,6 +355,7 @@ void ImStatefulCanvas::show(const char *label) const {
     y = y_;
   }
 
+  ImDrawList *drawList = ImGui::GetWindowDrawList();
   drawList->PushClipRect(ImVec2(x, y), ImVec2(x + width_, y + height_));
 
   for (int i = 0; i < drawList_.Size; ++i) {
