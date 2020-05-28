@@ -18,5 +18,5 @@ id = imCanvas->line(ImVec2(x0, y0), ImVec2(x1, y1), 0xFF00FFFF);
 // redraw
 bool open = true;
 ImGui::Begin("Drawing", &open);
-imCanvas->show("Canvas");
+imCanvas->draw("Canvas");
 ImGui::End();
