@@ -35,6 +35,8 @@ class ImStatefulCanvas {
     ImStatefulCanvas(float width, float height);
     ImStatefulCanvas(float x, float y, float width, float height);
     ~ImStatefulCanvas() { clear(); }
+    void setSize(float width, float height);
+    void setLocation(float x, float y);
     int line(const ImVec2 &p1, const ImVec2 &p2, ImU32 col, float thickness = 1.0f);
     int rect(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f,
              ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All, float thickness = 1.0f);
