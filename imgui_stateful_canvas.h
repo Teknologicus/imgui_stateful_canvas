@@ -31,39 +31,42 @@
 namespace ImGui {
 class ImStatefulCanvas {
   public:
+    typedef int DrawIdx;
+
+  public:
     ImStatefulCanvas() = delete;
     ImStatefulCanvas(float width, float height);
     ImStatefulCanvas(float x, float y, float width, float height);
     ~ImStatefulCanvas() { clear(); }
     void setSize(float width, float height) { size_ = {width, height}; }
     void setLocation(float x, float y) { useCursorPosition_ = false; location_ = {x, y}; }
-    int line(const ImVec2 &p1, const ImVec2 &p2, ImU32 col, float thickness = 1.0f);
-    int rect(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f,
-             ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All, float thickness = 1.0f);
-    int rectFilled(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
-    int rectFilledMultiColor(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left);
-    int quad(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col, float thickness = 1.0f);
-    int quadFilled(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col);
-    int triangle(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 col, float thickness = 1.0f);
-    int triangleFilled(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 col);
-    int circle(const ImVec2 &center, float radius, ImU32 col, int num_segments = 12, float thickness = 1.0f);
-    int circleFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments = 12);
-    int ngon(const ImVec2 &center, float radius, ImU32 col, int num_segments, float thickness = 1.0f);
-    int ngonFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments);
-    int text(const ImVec2 &pos, ImU32 col, const char *text_begin, const char *text_end = NULL);
-    int text(const ImFont *font, float font_size, const ImVec2 &pos, ImU32 col,
-             const char *text_begin, const char *text_end = NULL, float wrap_width = 0.0f, const ImVec4 *cpu_fine_clip_rect = NULL);
-    int polyline(const ImVec2 *points, int num_points, ImU32 col, bool closed, float thickness = 1.0f);
-    int convexPolyFilled(const ImVec2 *points, int num_points, ImU32 col); // Note: Anti-aliased filling requires points to be in clockwise order.
-    int bezierCurve(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col, float thickness = 1.0f, int num_segments = 0);
-    int image(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max, const ImVec2 &uv_min = ImVec2(0, 0),
-              const ImVec2 &uv_max = ImVec2(1, 1), ImU32 col = IM_COL32_WHITE);
-    int imageQuad(ImTextureID user_texture_id, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, const ImVec2 &uv1 = ImVec2(0, 0),
-                  const ImVec2 &uv2 = ImVec2(1, 0), const ImVec2 &uv3 = ImVec2(1, 1), const ImVec2 &uv4 = ImVec2(0, 1), ImU32 col = IM_COL32_WHITE);
-    int imageRounded(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max, const ImVec2 &uv_min, const ImVec2 &uv_max, ImU32 col,
-                     float rounding, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
+    DrawIdx line(const ImVec2 &p1, const ImVec2 &p2, ImU32 col, float thickness = 1.0f);
+    DrawIdx rect(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f,
+                 ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All, float thickness = 1.0f);
+    DrawIdx rectFilled(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
+    DrawIdx rectFilledMultiColor(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left);
+    DrawIdx quad(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col, float thickness = 1.0f);
+    DrawIdx quadFilled(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col);
+    DrawIdx triangle(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 col, float thickness = 1.0f);
+    DrawIdx triangleFilled(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 col);
+    DrawIdx circle(const ImVec2 &center, float radius, ImU32 col, int num_segments = 12, float thickness = 1.0f);
+    DrawIdx circleFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments = 12);
+    DrawIdx ngon(const ImVec2 &center, float radius, ImU32 col, int num_segments, float thickness = 1.0f);
+    DrawIdx ngonFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments);
+    DrawIdx text(const ImVec2 &pos, ImU32 col, const char *text_begin, const char *text_end = NULL);
+    DrawIdx text(const ImFont *font, float font_size, const ImVec2 &pos, ImU32 col,
+                 const char *text_begin, const char *text_end = NULL, float wrap_width = 0.0f, const ImVec4 *cpu_fine_clip_rect = NULL);
+    DrawIdx polyline(const ImVec2 *points, int num_points, ImU32 col, bool closed, float thickness = 1.0f);
+    DrawIdx convexPolyFilled(const ImVec2 *points, int num_points, ImU32 col); // Note: Anti-aliased filling requires points to be in clockwise order.
+    DrawIdx bezierCurve(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col, float thickness = 1.0f, int num_segments = 0);
+    DrawIdx image(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max, const ImVec2 &uv_min = ImVec2(0, 0),
+                  const ImVec2 &uv_max = ImVec2(1, 1), ImU32 col = IM_COL32_WHITE);
+    DrawIdx imageQuad(ImTextureID user_texture_id, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, const ImVec2 &uv1 = ImVec2(0, 0),
+                      const ImVec2 &uv2 = ImVec2(1, 0), const ImVec2 &uv3 = ImVec2(1, 1), const ImVec2 &uv4 = ImVec2(0, 1), ImU32 col = IM_COL32_WHITE);
+    DrawIdx imageRounded(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max, const ImVec2 &uv_min, const ImVec2 &uv_max, ImU32 col,
+                         float rounding, ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All);
     void draw(const char *label) const;
-    void erase(int id);
+    void erase(DrawIdx idx);
     void clear();
     
   private:
@@ -126,7 +129,7 @@ class ImStatefulCanvas {
     typedef ImVector<Primitive *> DrawList;
 
   private:
-    int addToDrawList(Primitive *primitive);
+    DrawIdx addToDrawList(Primitive *primitive);
 
   private:
     bool     useCursorPosition_;
