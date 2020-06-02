@@ -40,6 +40,7 @@ class ImStatefulCanvas {
     ~ImStatefulCanvas() { clear(); }
     void setSize(float width, float height) { size_ = {width, height}; }
     void setLocation(float x, float y) { useCursorPosition_ = false; location_ = {x, y}; }
+    void setZ(int z) { z_ = z; } // control draw order (low z draws first) for following primitive adds calls
     DrawIdx line(const ImVec2 &p1, const ImVec2 &p2, ImU32 col, float thickness = 1.0f);
     DrawIdx rect(const ImVec2 &p_min, const ImVec2 &p_max, ImU32 col, float rounding = 0.0f,
                  ImDrawCornerFlags rounding_corners = ImDrawCornerFlags_All, float thickness = 1.0f);
@@ -70,7 +71,7 @@ class ImStatefulCanvas {
     void clear();
     
   private:
-    struct Primitive { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) = 0; virtual ~Primitive() { } };
+    struct Primitive { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) = 0; virtual ~Primitive() { } int z; };
     struct Center { ImVec2 center; };
     struct Point { ImVec2 p; };
     struct Points2 { ImVec2 p1, p2; };
@@ -135,6 +136,7 @@ class ImStatefulCanvas {
     bool     useCursorPosition_;
     ImVec2   location_,
              size_;
+    int      z_;
     DrawList drawList_;
 };
 } // namespace ImGui
