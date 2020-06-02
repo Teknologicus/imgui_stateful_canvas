@@ -54,9 +54,9 @@ class ImStatefulCanvas {
     DrawIdx circleFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments = 12);
     DrawIdx ngon(const ImVec2 &center, float radius, ImU32 col, int num_segments, float thickness = 1.0f);
     DrawIdx ngonFilled(const ImVec2 &center, float radius, ImU32 col, int num_segments);
-    DrawIdx text(const ImVec2 &pos, ImU32 col, const char *text_begin, const char *text_end = NULL);
+    DrawIdx text(const ImVec2 &pos, ImU32 col, const char *text_begin, const char *text_end = nullptr);
     DrawIdx text(const ImFont *font, float font_size, const ImVec2 &pos, ImU32 col,
-                 const char *text_begin, const char *text_end = NULL, float wrap_width = 0.0f, const ImVec4 *cpu_fine_clip_rect = NULL);
+                 const char *text_begin, const char *text_end = nullptr, float wrap_width = 0.0f, const ImVec4 *cpu_fine_clip_rect = nullptr);
     DrawIdx polyline(const ImVec2 *points, int num_points, ImU32 col, bool closed, float thickness = 1.0f);
     DrawIdx convexPolyFilled(const ImVec2 *points, int num_points, ImU32 col); // Note: Anti-aliased filling requires points to be in clockwise order.
     DrawIdx bezierCurve(const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, const ImVec2 &p4, ImU32 col, float thickness = 1.0f, int num_segments = 0);
