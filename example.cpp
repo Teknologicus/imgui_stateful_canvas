@@ -3,17 +3,22 @@
 // declaration
 ImGui::ImStatefulCanvas *imCanvas;
 float x0, y0, x1, y1;
-int   id;
+ImGui::ImStatefulCanvas::DrawIdx lines[2];
 ...
 // start up
 imCanvas = new ImGui::ImStatefulCanvas(WINDOW_WIDTH, WINDOW_HEIGHT);
-x0 = 0; y0 = 0; x1 = 20; y1 = 20; id = -1;
+x0 = 0; y0 = 0; x1 = 20; y1 = 20; lines[0] = -1; lines[1] = -1;
 ...
 // infrequent update
-if (id != -1)
-  imCanvas->erase(id);
+if (lines[0] != -1) {
+  imCanvas->erase(lines[0]);
+  imCanvas->erase(lines[1]);
+}
 
-id = imCanvas->line(ImVec2(x0, y0), ImVec2(x1, y1), 0xFF00FFFF);
+imCanvas->setZ(1); // draw second
+lines[0] = imCanvas->line(ImVec2(x0, y0), ImVec2(x1, y1), 0xFF00FFFF);
+imCanvas->setZ(0); // draw first
+lines[1] = imCanvas->line(ImVec2(x1, y0), ImVec2(x0, y1), 0xFFFF00FF);
 ...
 // redraw
 bool open = true;
