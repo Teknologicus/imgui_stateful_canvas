@@ -360,7 +360,7 @@ void ImStatefulCanvas::draw(const char *label) const {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void ImStatefulCanvas::erase(DrawIdx idx) {
   delete drawList_[idx];
-  drawList_[idx] = NULL;
+  drawList_[idx] = nullptr;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,7 +450,7 @@ void ImStatefulCanvas::Text::draw(ImDrawList *drawList, const ImVec2 &loc) {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void ImStatefulCanvas::Text2::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddText(font, fontSize, p + loc, color, string.c_str(), NULL, wrapWidth, cpuFineClipRect);
+  drawList->AddText(font, fontSize, p + loc, color, string.c_str(), nullptr, wrapWidth, cpuFineClipRect);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
