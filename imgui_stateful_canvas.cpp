@@ -208,7 +208,7 @@ ImStatefulCanvas::DrawIdx ImStatefulCanvas::text(const ImFont *font, float font_
   text->z               = z_;
   text->p               = pos;
   text->color           = col;
-  text->string          = text_end ? std::string(text_begin, text_end - text_begin) : std::string(text_begin);
+  text->string          = text_end ? std::string(text_begin, text_end - text_begin) : text_begin;
   text->font            = font;
   text->fontSize        = font_size;
   text->wrapWidth       = wrap_width;
@@ -341,7 +341,7 @@ void ImStatefulCanvas::draw(const char *label) const {
     }
   }
 
-  for (int z = zMin; z <= zMax; ++z)
+  for (int z = zMin; z <= zMax; ++z) // poor performance with largely distant z values -- designed for several, adjacent z layers on a canvas
     for (int i = 0; i < drawList_.Size; ++i) {
       Primitive *primitive = drawList_[i];
 
