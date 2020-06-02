@@ -13,6 +13,7 @@ x0 = 0; y0 = 0; x1 = 20; y1 = 20; lines[0] = -1; lines[1] = -1;
 if (lines[0] != -1) {
   imCanvas->erase(lines[0]);
   imCanvas->erase(lines[1]);
+  // or call imCanvas->clear() if you want to erase all primitives from canvas
 }
 
 imCanvas->setZ(1); // draw second
