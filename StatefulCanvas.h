@@ -27,10 +27,13 @@
 
 #include "imgui/imgui.h"
 #include <string>
+#include <type_traits>
 #include <assert.h>
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 namespace ImGui {
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 class StatefulCanvas {
   public: // data types
     typedef int draw_idx_t;
@@ -64,7 +67,7 @@ class StatefulCanvas {
     draw_idx_t text(const ImFont *font, float fontSize, const ImVec2 &pos, ImU32 color,
                     const char *textBegin, const char *textEnd = nullptr, float wrapWidth = 0.0f, const ImVec4 *cpuFineClipRect = nullptr);
     draw_idx_t polyline(const ImVec2 *points, int nPoints, ImU32 color, bool closed, float thickness = 1.0f);
-    draw_idx_t convexPolyFilled(const ImVec2 *points, int nPoints, ImU32 color); // Note: Anti-aliased filling requires points to be in clockwise order.
+    draw_idx_t convexPolyFilled(const ImVec2 *points, int nPoints, ImU32 color);
     draw_idx_t bezierCurve(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 color, float thickness = 1.0f, int nSegments = 0);
     draw_idx_t image(ImTextureID textureId, const ImVec2 &min, const ImVec2 &max, const ImVec2 &uvMin = ImVec2(0, 0), const ImVec2 &uvMax = ImVec2(1, 1),
                      ImU32 color = IM_COL32_WHITE);
@@ -75,7 +78,8 @@ class StatefulCanvas {
     void draw(const char *label) const;
     void erase(draw_idx_t idx);
     void clear();
-    Primitive* item(draw_idx_t idx) { assert((idx >= 0) && (idx < drawList_.size())); return drawList_[idx]; } // low-level mutator
+    template<typename T>
+    T* item(draw_idx_t idx); // low-level mutator
 
   public: // data types
     struct Primitive {
@@ -172,6 +176,15 @@ class StatefulCanvas {
     DrawList drawList_;
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+template<typename T>
+T* StatefulCanvas::item(draw_idx_t idx) {
+  static_assert(std::is_base_of<StatefulCanvas::Primitive, T>::value);
+  assert((idx >= 0) && (idx < drawList_.size()));
+  return (T*)drawList_[idx];
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 } // namespace ImGui
 
 #endif // STATEFUL_CANVAS_H
