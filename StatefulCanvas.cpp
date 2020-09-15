@@ -23,13 +23,17 @@
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include "StatefulCanvas.h"
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-#define IMGUI_DEFINE_MATH_OPERATORS
-#endif
-#include "imgui/imgui_internal.h"
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 namespace ImGui {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void StatefulCanvas::Points::move(float x, float y) {
+  ImVec2 m(x, y);
+
+  for (int i = 0; i < points.size(); ++i)
+    points[i] += m;
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::StatefulCanvas(float width, float height) {
@@ -327,7 +331,13 @@ StatefulCanvas::draw_idx_t StatefulCanvas::imageRounded(ImTextureID textureId, c
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
-void StatefulCanvas::draw(const char *label) const {
+StatefulCanvas::draw_idx_t StatefulCanvas::custom(Primitive *c) {
+  c->z = z_;
+  return addToDrawList(c);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void StatefulCanvas::draw(const char *label, bool clip) const {
   if (drawList_.size() == 0)
     return;
 
@@ -344,7 +354,9 @@ void StatefulCanvas::draw(const char *label) const {
     loc = location_;
 
   ImDrawList *drawList = ImGui::GetWindowDrawList();
-  drawList->PushClipRect(loc, loc + size_);
+
+  if (clip)
+    drawList->PushClipRect(loc, loc + size_);
 
   int min = INT_MAX,
       max = INT_MIN;
@@ -353,11 +365,13 @@ void StatefulCanvas::draw(const char *label) const {
     Primitive *primitive = drawList_[i];
 
     if (primitive) {
-      if (primitive->z < min)
-        min = primitive->z;
+      int z = primitive->z + primitive->offsetZ;
 
-      if (primitive->z > max)
-        max = primitive->z;
+      if (z < min)
+        min = z;
+
+      if (z > max)
+        max = z;
     }
   }
 
@@ -365,7 +379,7 @@ void StatefulCanvas::draw(const char *label) const {
     for (int i = 0; i < drawList_.size(); ++i) {
       Primitive *primitive = drawList_[i];
 
-      if (primitive && primitive->visible && (primitive->z == z))
+      if (primitive && primitive->visible && ((primitive->z + primitive->offsetZ) == z))
         primitive->draw(drawList, loc);
     }
 
@@ -374,7 +388,8 @@ void StatefulCanvas::draw(const char *label) const {
     ItemAdd(ImRect(window->DC.CursorPos, window->DC.CursorPos + size_), window->GetID(label));
   }
 
-  drawList->PopClipRect();
+  if (clip)
+    drawList->PopClipRect();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -406,108 +421,150 @@ StatefulCanvas::draw_idx_t StatefulCanvas::addToDrawList(Primitive *primitive) {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Line::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddLine(p0 + loc, p1 + loc, color, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddLine(p0 + offs, p1 + offs, color, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Rect::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddRect(p0 + loc, p1 + loc, color, rounding, cornerFlags, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddRect(p0 + offs, p1 + offs, color, rounding, cornerFlags, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::RectFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddRectFilled(p0 + loc, p1 + loc, color, rounding, cornerFlags);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddRectFilled(p0 + offs, p1 + offs, color, rounding, cornerFlags);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::RectFilledMultiColor::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddRectFilledMultiColor(p0 + loc, p1 + loc, color0, color1, color2, color3);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddRectFilledMultiColor(p0 + offs, p1 + offs, color0, color1, color2, color3);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Quad::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddQuad(p0 + loc, p1 + loc, p2 + loc, p3 + loc, color, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddQuad(p0 + offs, p1 + offs, p2 + offs, p3 + offs, color, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::QuadFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddQuadFilled(p0 + loc, p1 + loc, p2 + loc, p3 + loc, color);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddQuadFilled(p0 + offs, p1 + offs, p2 + offs, p3 + offs, color);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Triangle::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddTriangle(p0 + loc, p1 + loc, p2 + loc, color, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddTriangle(p0 + offs, p1 + offs, p2 + offs, color, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::TriangleFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddTriangleFilled(p0 + loc, p1 + loc, p2 + loc, color);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddTriangleFilled(p0 + offs, p1 + offs, p2 + offs, color);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Circle::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddCircle(center + loc, radius, color, segments, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddCircle(center + offs, radius, color, segments, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::CircleFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddCircleFilled(center + loc, radius, color, segments);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddCircleFilled(center + offs, radius, color, segments);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Ngon::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddNgon(center + loc, radius, color, segments, thickness);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddNgon(center + offs, radius, color, segments, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::NgonFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddNgonFilled(center + loc, radius, color, segments);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddNgonFilled(center + offs, radius, color, segments);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Text::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddText(p + loc, color, string.c_str());
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddText(p + offs, color, string.c_str());
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Text2::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddText(font, fontSize, p + loc, color, string.c_str(), nullptr, wrapWidth, cpuFineClipRect);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddText(font, fontSize, p + offs, color, string.c_str(), nullptr, wrapWidth, cpuFineClipRect);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Polyline::draw(ImDrawList *drawList, const ImVec2 &loc) {
+  ImVec2 offs;
+  offset(loc, &offs);
+
   for (int i = 0; i < points.Size; ++i)
-    adjustedPoints[i] = points[i] + loc;
+    adjustedPoints[i] = points[i] + offs;
 
   drawList->AddPolyline(adjustedPoints, points.Size, color, closed, thickness);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::ConvexPolyFilled::draw(ImDrawList *drawList, const ImVec2 &loc) {
+  ImVec2 offs;
+  offset(loc, &offs);
+
   for (int i = 0; i < points.Size; ++i)
-    adjustedPoints[i] = points[i] + loc;
+    adjustedPoints[i] = points[i] + offs;
 
   drawList->AddConvexPolyFilled(adjustedPoints, points.Size, color);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::BezierCurve::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddBezierCurve(p0 + loc, p1 + loc, p2 + loc, p3 + loc, color, thickness, segments);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddBezierCurve(p0 + offs, p1 + offs, p2 + offs, p3 + offs, color, thickness, segments);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::Image::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddImage(textureId, p0 + loc, p1 + loc, uv0, uv1, color);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddImage(textureId, p0 + offs, p1 + offs, uv0, uv1, color);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::ImageQuad::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddImageQuad(textureId, p0 + loc, p1 + loc, p2 + loc, p3 + loc, uv0, uv1, uv2, uv3, color);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddImageQuad(textureId, p0 + offs, p1 + offs, p2 + offs, p3 + offs, uv0, uv1, uv2, uv3, color);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 void StatefulCanvas::ImageRounded::draw(ImDrawList *drawList, const ImVec2 &loc) {
-  drawList->AddImageRounded(textureId, p0 + loc, p1 + loc, uv0, uv1, color, rounding, cornerFlags);
+  ImVec2 offs;
+  offset(loc, &offs);
+  drawList->AddImageRounded(textureId, p0 + offs, p1 + offs, uv0, uv1, color, rounding, cornerFlags);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
