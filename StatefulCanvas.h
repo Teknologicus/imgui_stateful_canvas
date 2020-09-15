@@ -26,6 +26,10 @@
 #define STATEFUL_CANVAS_H
 
 #include "imgui/imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui/imgui_internal.h"
 #include <string>
 #include <type_traits>
 #include <assert.h>
@@ -75,7 +79,8 @@ class StatefulCanvas {
                          const ImVec2 &uv1 = ImVec2(1, 0), const ImVec2 &uv2 = ImVec2(1, 1), const ImVec2 &uv3 = ImVec2(0, 1), ImU32 color = IM_COL32_WHITE);
     draw_idx_t imageRounded(ImTextureID textureId, const ImVec2 &min, const ImVec2 &max, const ImVec2 &uvMin, const ImVec2 &uvMax, ImU32 color,
                             float rounding, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All);
-    void draw(const char *label) const;
+    draw_idx_t custom(Primitive *c); // add custom object to draw list
+    void draw(const char *label, bool clip = true) const;
     void erase(draw_idx_t idx);
     void clear();
     template<typename T>
@@ -86,24 +91,51 @@ class StatefulCanvas {
       // methods
       Primitive() {
         z       = 0;
+        offsetX = 0;
+        offsetY = 0;
+        offsetZ = 0;
         visible = true;
       }
-      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) = 0;
       virtual ~Primitive() { }
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) = 0;
+      virtual void moveTo(float x, float y) = 0;
+      void dragAndDropStart(int z) { offsetZ = z; }
+      void dragAndDropUpdate(float x, float y) { offsetX = x; offsetY = y; }
+      void dragAndDropEnd() { offsetX = 0; offsetY = 0; offsetZ = 0; }
+      void dragAndDropEnd(float x, float y) { offsetX = 0; offsetY = 0; offsetZ = 0; moveTo(x, y); }
+      void offset(const ImVec2 &loc, ImVec2 *offset) const { *offset = loc; offset->x += offsetX; offset->y += offsetY; }
 
       // data members
-      int  z;
-      bool visible;
+      int   z,
+            offsetZ; // offsets for client drag and drop functionality
+      float offsetX, offsetY;
+      bool  visible;
     };
-    struct Center { ImVec2 center; };
-    struct Point { ImVec2 p; };
-    struct Points2 { ImVec2 p0, p1; };
-    struct Points3 { ImVec2 p0, p1, p2; };
-    struct Points4 { ImVec2 p0, p1, p2, p3; };
+    struct Center {
+      void move(float x, float y) { center += ImVec2(x, y); }
+      ImVec2 center;
+    };
+    struct Point {
+      void move(float x, float y) { p += ImVec2(x, y); }
+      ImVec2 p;
+    };
+    struct Points2 {
+      void move(float x, float y) { ImVec2 m(x, y); p0 += m; p1 += m; }
+      ImVec2 p0, p1;
+    };
+    struct Points3 {
+      void move(float x, float y) { ImVec2 m(x, y); p0 += m; p1 += m; p2 += m; }
+      ImVec2 p0, p1, p2;
+    };
+    struct Points4 {
+      void move(float x, float y) { ImVec2 m(x, y); p0 += m; p1 += m; p2 += m; p3 += m; }
+      ImVec2 p0, p1, p2, p3;
+    };
     struct Points {
       // methods
       Points(int size) { adjustedPoints = new ImVec2[size]; }
       virtual ~Points() { delete [] adjustedPoints; }
+      void move(float x, float y);
 
       // data members
       ImVector<ImVec2> points;
@@ -120,22 +152,62 @@ class StatefulCanvas {
     struct Texture { ImTextureID textureId; };
     struct UVs2 { ImVec2 uv0, uv1; };
     struct UVs4 { ImVec2 uv0, uv1, uv2, uv3; };
-    struct Line : Primitive, Points2, Color, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Rect : Primitive, Points2, Color, Rounding, CornerFlags, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct RectFilled : Primitive, Points2, Color, Rounding, CornerFlags { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct RectFilledMultiColor : Primitive, Points2, Color4 { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Quad : Primitive, Points4, Color, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct QuadFilled : Primitive, Points4, Color { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Triangle : Primitive, Points3, Color, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct TriangleFilled : Primitive, Points3, Color { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Circle : Primitive, Center, Radius, Color, Segments, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct CircleFilled : Primitive, Center, Radius, Color, Segments { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Ngon : Primitive, Center, Radius, Color, Segments, Thickness { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct NgonFilled : Primitive, Center, Radius, Color, Segments { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Text : Primitive, Point, Color, String { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
+    struct Line : Primitive, Points2, Color, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Rect : Primitive, Points2, Color, Rounding, CornerFlags, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct RectFilled : Primitive, Points2, Color, Rounding, CornerFlags {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct RectFilledMultiColor : Primitive, Points2, Color4 {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Quad : Primitive, Points4, Color, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct QuadFilled : Primitive, Points4, Color {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Triangle : Primitive, Points3, Color, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct TriangleFilled : Primitive, Points3, Color {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Circle : Primitive, Center, Radius, Color, Segments, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct CircleFilled : Primitive, Center, Radius, Color, Segments {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Ngon : Primitive, Center, Radius, Color, Segments, Thickness {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct NgonFilled : Primitive, Center, Radius, Color, Segments {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Text : Primitive, Point, Color, String {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
     struct Text2 : Primitive, Point, Color, String {
       // methods
       virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
 
       // data members
       const ImFont *font;
@@ -147,6 +219,7 @@ class StatefulCanvas {
       // methods
       Polyline(int size) : Points(size) { }
       virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
 
       // data members
       bool closed;
@@ -154,12 +227,23 @@ class StatefulCanvas {
     struct ConvexPolyFilled : Primitive, Points, Color {
       ConvexPolyFilled(int size) : Points(size) { }
       virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
     };
-    struct BezierCurve : Primitive, Points4, Color, Thickness, Segments { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct Image : Primitive, Texture, Points2, UVs2, Color { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
-    struct ImageQuad : Primitive, Texture, Points4, UVs4, Color { virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override; };
+    struct BezierCurve : Primitive, Points4, Color, Thickness, Segments {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct Image : Primitive, Texture, Points2, UVs2, Color {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
+    struct ImageQuad : Primitive, Texture, Points4, UVs4, Color {
+      virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
+    };
     struct ImageRounded : Primitive, Texture, Points2, UVs2, Color, Rounding, CornerFlags {
       virtual void draw(ImDrawList *drawList, const ImVec2 &loc) override;
+      virtual void moveTo(float x, float y) override { move(x, y); }
     };
 
   private: // data types
