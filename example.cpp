@@ -1,3 +1,4 @@
+// NOTE: This is an outdated example which needs to be updated -- should still be useful for getting you started if you look at StatefulCanvas.h
 #include "imgui/imgui_stateful_canvas.h"
 
 // declaration
