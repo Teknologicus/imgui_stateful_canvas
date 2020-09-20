@@ -40,6 +40,7 @@ namespace ImGui {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 class StatefulCanvas {
   public: // data types
+    enum { DRAW_IDX_NONE = -1 };
     typedef int draw_idx_t;
     struct Primitive;
 
@@ -48,11 +49,12 @@ class StatefulCanvas {
     StatefulCanvas(float width, float height);
     StatefulCanvas(float x, float y, float width, float height);
     ~StatefulCanvas() { clear(); }
-    void size(float width, float height) { assert((width > 0) && (height > 0)); size_ = {width, height}; }
-    void location(float x, float y) { useCursorPosition_ = false; location_ = {x, y}; }
-    void z(int z) { z_ = z; } // control draw order (low z draws first) for following primitive add calls
-    bool visible(draw_idx_t idx) const;
-    void visible(draw_idx_t idx, bool state);
+    void canvasSize(float width, float height) { assert((width > 0) && (height > 0)); size_ = {width, height}; }
+    void canvasLocation(float x, float y) { useCursorPosition_ = false; location_ = {x, y}; }
+    void pushZ(int z) { zStack_.push_back(z); } // push/pop draw order (low z draws first) for following primitive add calls
+    void popZ() { assert(zStack_.size() > 0); zStack_.pop_back(); }
+    void pushClipRect(const ImVec2 &min, const ImVec2 &max); // push/pop a clip rect for following primitive add calls
+    void popClipRect();
     draw_idx_t line(const ImVec2 &p0, const ImVec2 &p1, ImU32 color, float thickness = 1.0f);
     draw_idx_t rect(const ImVec2 &min, const ImVec2 &max, ImU32 color, float rounding = 0.0f,
                     ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float thickness = 1.0f);
@@ -80,6 +82,8 @@ class StatefulCanvas {
     draw_idx_t imageRounded(ImTextureID textureId, const ImVec2 &min, const ImVec2 &max, const ImVec2 &uvMin, const ImVec2 &uvMax, ImU32 color,
                             float rounding, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All);
     draw_idx_t custom(Primitive *c); // add custom object to draw list
+    bool visible(draw_idx_t idx) const;
+    void visible(draw_idx_t idx, bool state);
     void draw(const char *label, bool clip = true) const;
     void erase(draw_idx_t idx);
     void clear();
@@ -95,6 +99,7 @@ class StatefulCanvas {
         offsetY = 0;
         offsetZ = 0;
         visible = true;
+        clip    = false;
       }
       virtual ~Primitive() { }
       virtual void draw(ImDrawList *drawList, const ImVec2 &loc) = 0;
@@ -106,10 +111,12 @@ class StatefulCanvas {
       void offset(const ImVec2 &loc, ImVec2 *offset) const { *offset = loc; offset->x += offsetX; offset->y += offsetY; }
 
       // data members
-      int   z,
-            offsetZ; // offsets for client drag and drop functionality
-      float offsetX, offsetY;
-      bool  visible;
+      int    z,
+             offsetZ; // offsets for client drag and drop functionality
+      float  offsetX, offsetY;
+      bool   visible,
+             clip;
+      ImVec4 clipRect;
     };
     struct Center {
       void move(float x, float y) { center += ImVec2(x, y); }
@@ -248,16 +255,23 @@ class StatefulCanvas {
 
   private: // data types
     typedef ImVector<Primitive *> DrawList;
+    typedef ImVector<int>         ZStack;
+    typedef ImVector<ImVec4>      ClipRectStack;
 
   private: // methods
     draw_idx_t addToDrawList(Primitive *primitive);
+    int z() const { return zStack_.size() > 0 ? zStack_.back() : 0; }
+    void addClipRect(Primitive *primitive) const;
+//     void beginClip(ImDrawList *drawList, const Primitive *primitive);
+//     void endClip(ImDrawList *drawList, const Primitive *primitive);
 
   private: // data members
-    bool     useCursorPosition_;
-    ImVec2   location_,
-             size_;
-    int      z_;
-    DrawList drawList_;
+    bool          useCursorPosition_;
+    ImVec2        location_,
+                  size_;
+    ZStack        zStack_;
+    ClipRectStack clipRectStack_;
+    DrawList      drawList_;
 };
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
