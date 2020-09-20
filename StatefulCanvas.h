@@ -262,8 +262,6 @@ class StatefulCanvas {
     draw_idx_t addToDrawList(Primitive *primitive);
     int z() const { return zStack_.size() > 0 ? zStack_.back() : 0; }
     void addClipRect(Primitive *primitive) const;
-//     void beginClip(ImDrawList *drawList, const Primitive *primitive);
-//     void endClip(ImDrawList *drawList, const Primitive *primitive);
 
   private: // data members
     bool          useCursorPosition_;
