@@ -41,7 +41,6 @@ StatefulCanvas::StatefulCanvas(float width, float height) {
   useCursorPosition_ = true;
   location_          = {0, 0};
   size_              = {width, height};
-  z_                 = 0;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,29 +49,12 @@ StatefulCanvas::StatefulCanvas(float x, float y, float width, float height) {
   useCursorPosition_ = false;
   location_          = {x, y};
   size_              = {width, height};
-  z_                 = 0;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-bool StatefulCanvas::visible(draw_idx_t idx) const {
-  assert((idx >= 0) && (idx < drawList_.size()));
-  Primitive *item = drawList_[idx];
-  assert(item);
-  return item->visible;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-void StatefulCanvas::visible(draw_idx_t idx, bool state) {
-  assert((idx >= 0) && (idx < drawList_.size()));
-  Primitive *item = drawList_[idx];
-  assert(item);
-  item->visible = state;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::line(const ImVec2 &p0, const ImVec2 &p1, ImU32 color, float thickness) {
   Line *line      = new Line;
-  line->z         = z_;
+  line->z         = z();
   line->p0        = p0;
   line->p1        = p1;
   line->color     = color;
@@ -84,7 +66,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::line(const ImVec2 &p0, const ImVec2 &
 StatefulCanvas::draw_idx_t StatefulCanvas::rect(const ImVec2 &min, const ImVec2 &max, ImU32 color, float rounding, ImDrawCornerFlags roundingCorners,
                                                 float thickness) {
   Rect *rect        = new Rect;
-  rect->z           = z_;
+  rect->z           = z();
   rect->p0          = min;
   rect->p1          = max;
   rect->color       = color;
@@ -98,7 +80,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::rect(const ImVec2 &min, const ImVec2 
 StatefulCanvas::draw_idx_t StatefulCanvas::rectFilled(const ImVec2 &min, const ImVec2 &max, ImU32 color, float rounding,
                                                       ImDrawCornerFlags roundingCorners) {
   RectFilled *rect  = new RectFilled;
-  rect->z           = z_;
+  rect->z           = z();
   rect->p0          = min;
   rect->p1          = max;
   rect->color       = color;
@@ -111,7 +93,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::rectFilled(const ImVec2 &min, const I
 StatefulCanvas::draw_idx_t StatefulCanvas::rectFilledMultiColor(const ImVec2 &min, const ImVec2 &max,
                                                                 ImU32 colorUpperLeft, ImU32 colorUpperRight, ImU32 colorBottomRight, ImU32 colorBottomLeft) {
   RectFilledMultiColor *rect = new RectFilledMultiColor;
-  rect->z                    = z_;
+  rect->z                    = z();
   rect->p0                   = min;
   rect->p1                   = max;
   rect->color0               = colorUpperLeft;
@@ -124,7 +106,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::rectFilledMultiColor(const ImVec2 &mi
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::quad(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 color, float thickness) {
   Quad *quad      = new Quad;
-  quad->z         = z_;
+  quad->z         = z();
   quad->p0        = p0;
   quad->p1        = p1;
   quad->p2        = p2;
@@ -137,7 +119,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::quad(const ImVec2 &p0, const ImVec2 &
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::quadFilled(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 color) {
   QuadFilled *quad = new QuadFilled;
-  quad->z          = z_;
+  quad->z          = z();
   quad->p0         = p0;
   quad->p1         = p1;
   quad->p2         = p2;
@@ -149,7 +131,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::quadFilled(const ImVec2 &p0, const Im
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::triangle(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, ImU32 color, float thickness) {
   Triangle *tri  = new Triangle;
-  tri->z         = z_;
+  tri->z         = z();
   tri->p0        = p0;
   tri->p1        = p1;
   tri->p2        = p2;
@@ -161,7 +143,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::triangle(const ImVec2 &p0, const ImVe
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::triangleFilled(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, ImU32 color) {
   TriangleFilled *tri = new TriangleFilled;
-  tri->z              = z_;
+  tri->z              = z();
   tri->p0             = p0;
   tri->p1             = p1;
   tri->p2             = p2;
@@ -172,7 +154,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::triangleFilled(const ImVec2 &p0, cons
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::circle(const ImVec2 &center, float radius, ImU32 color, int nSegments, float thickness) {
   Circle *circle    = new Circle;
-  circle->z         = z_;
+  circle->z         = z();
   circle->center    = center;
   circle->radius    = radius;
   circle->color     = color;
@@ -184,7 +166,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::circle(const ImVec2 &center, float ra
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::circleFilled(const ImVec2 &center, float radius, ImU32 color, int nSegments) {
   CircleFilled *circle = new CircleFilled;
-  circle->z            = z_;
+  circle->z            = z();
   circle->center       = center;
   circle->radius       = radius;
   circle->color        = color;
@@ -195,7 +177,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::circleFilled(const ImVec2 &center, fl
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::ngon(const ImVec2 &center, float radius, ImU32 color, int nSegments, float thickness) {
   Ngon *ngon      = new Ngon;
-  ngon->z         = z_;
+  ngon->z         = z();
   ngon->center    = center;
   ngon->radius    = radius;
   ngon->color     = color;
@@ -207,7 +189,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::ngon(const ImVec2 &center, float radi
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::ngonFilled(const ImVec2 &center, float radius, ImU32 color, int nSegments) {
   NgonFilled *ngon = new NgonFilled;
-  ngon->z          = z_;
+  ngon->z          = z();
   ngon->center     = center;
   ngon->radius     = radius;
   ngon->color      = color;
@@ -218,7 +200,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::ngonFilled(const ImVec2 &center, floa
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::text(const ImVec2 &pos, ImU32 color, const char *textBegin, const char *textEnd) {
   Text *text   = new Text;
-  text->z      = z_;
+  text->z      = z();
   text->p      = pos;
   text->color  = color;
   text->string = textEnd ? std::string(textBegin, textEnd - textBegin) : std::string(textBegin);
@@ -229,7 +211,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::text(const ImVec2 &pos, ImU32 color, 
 StatefulCanvas::draw_idx_t StatefulCanvas::text(const ImFont *font, float fontSize, const ImVec2 &pos, ImU32 color,
                                                 const char *textBegin, const char *textEnd, float wrapWidth, const ImVec4 *cpuFineClipRect) {
   Text2 *text           = new Text2;
-  text->z               = z_;
+  text->z               = z();
   text->p               = pos;
   text->color           = color;
   text->string          = textEnd ? std::string(textBegin, textEnd - textBegin) : textBegin;
@@ -243,7 +225,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::text(const ImFont *font, float fontSi
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::polyline(const ImVec2 *points, int nPoints, ImU32 color, bool closed, float thickness) {
   Polyline *poly  = new Polyline(nPoints);
-  poly->z         = z_;
+  poly->z         = z();
   poly->color     = color;
   poly->thickness = thickness;
   poly->closed    = closed;
@@ -257,7 +239,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::polyline(const ImVec2 *points, int nP
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::convexPolyFilled(const ImVec2 *points, int nPoints, ImU32 color) {
   ConvexPolyFilled *poly = new ConvexPolyFilled(nPoints);
-  poly->z                = z_;
+  poly->z                = z();
   poly->color            = color;
 
   for (int i = 0; i < nPoints; ++i)
@@ -270,7 +252,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::convexPolyFilled(const ImVec2 *points
 StatefulCanvas::draw_idx_t StatefulCanvas::bezierCurve(const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3, ImU32 color, float thickness,
                                                        int nSegments) {
   BezierCurve *bezier = new BezierCurve;
-  bezier->z           = z_;
+  bezier->z           = z();
   bezier->p0          = p0;
   bezier->p1          = p1;
   bezier->p2          = p2;
@@ -285,7 +267,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::bezierCurve(const ImVec2 &p0, const I
 StatefulCanvas::draw_idx_t StatefulCanvas::image(ImTextureID textureId, const ImVec2 &min, const ImVec2 &max, const ImVec2 &uvMin,
                                                  const ImVec2 &uvMax, ImU32 color) {
   Image *image     = new Image;
-  image->z         = z_;
+  image->z         = z();
   image->textureId = textureId;
   image->p0        = min;
   image->p1        = max;
@@ -299,7 +281,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::image(ImTextureID textureId, const Im
 StatefulCanvas::draw_idx_t StatefulCanvas::imageQuad(ImTextureID textureId, const ImVec2 &p0, const ImVec2 &p1, const ImVec2 &p2, const ImVec2 &p3,
                                                      const ImVec2 &uv0, const ImVec2 &uv1, const ImVec2 &uv2, const ImVec2 &uv3, ImU32 color) {
   ImageQuad *image = new ImageQuad;
-  image->z         = z_;
+  image->z         = z();
   image->textureId = textureId;
   image->p0        = p0;
   image->p1        = p1;
@@ -318,7 +300,7 @@ StatefulCanvas::draw_idx_t StatefulCanvas::imageRounded(ImTextureID textureId, c
                                                         const ImVec2 &uvMin, const ImVec2 &uvMax, ImU32 color, float rounding,
                                                         ImDrawCornerFlags roundingCorners) {
   ImageRounded *image = new ImageRounded;
-  image->z            = z_;
+  image->z            = z();
   image->textureId    = textureId;
   image->p0           = min;
   image->p1           = max;
@@ -332,8 +314,24 @@ StatefulCanvas::draw_idx_t StatefulCanvas::imageRounded(ImTextureID textureId, c
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::custom(Primitive *c) {
-  c->z = z_;
+  c->z = z();
   return addToDrawList(c);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool StatefulCanvas::visible(draw_idx_t idx) const {
+  assert((idx >= 0) && (idx < drawList_.size()));
+  Primitive *item = drawList_[idx];
+  assert(item);
+  return item->visible;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void StatefulCanvas::visible(draw_idx_t idx, bool state) {
+  assert((idx >= 0) && (idx < drawList_.size()));
+  Primitive *item = drawList_[idx];
+  assert(item);
+  item->visible = state;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -379,8 +377,17 @@ void StatefulCanvas::draw(const char *label, bool clip) const {
     for (int i = 0; i < drawList_.size(); ++i) {
       Primitive *primitive = drawList_[i];
 
-      if (primitive && primitive->visible && ((primitive->z + primitive->offsetZ) == z))
+      if (primitive && primitive->visible && ((primitive->z + primitive->offsetZ) == z)) {
+        if (primitive->clip) {
+          const ImVec4 &rect = primitive->clipRect;
+          drawList->PushClipRect(ImVec2(rect.x, rect.y), ImVec2(rect.z, rect.w));
+        }
+
         primitive->draw(drawList, loc);
+
+        if (primitive->clip)
+          drawList->PopClipRect();
+      }
     }
 
   if (useCursorPosition_) {
@@ -409,6 +416,8 @@ void StatefulCanvas::clear() {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
 StatefulCanvas::draw_idx_t StatefulCanvas::addToDrawList(Primitive *primitive) {
+  addClipRect(primitive);
+
   for (int i = 0; i < drawList_.size(); ++i)
     if (!drawList_[i]) {
       drawList_[i] = primitive;
@@ -417,6 +426,34 @@ StatefulCanvas::draw_idx_t StatefulCanvas::addToDrawList(Primitive *primitive) {
 
   drawList_.push_back(primitive);
   return drawList_.size() - 1;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+void StatefulCanvas::addClipRect(Primitive *primitive) const {
+  if (clipRectStack_.size() == 0)
+    primitive->clip = false;
+  else {
+    ImVec4 intersection(INT_MIN, INT_MIN, INT_MAX, INT_MAX);
+
+    for (int i = 0; i < clipRectStack_.size(); ++i) {
+      const ImVec4 &clipRect = clipRectStack_[i];
+
+      if (clipRect.x > intersection.x)
+        intersection.x = clipRect.x;
+
+      if (clipRect.y > intersection.y)
+        intersection.y = clipRect.y;
+
+      if (clipRect.z < intersection.z)
+        intersection.z = clipRect.z;
+
+      if (clipRect.w < intersection.w)
+        intersection.w = clipRect.w;
+    }
+
+    primitive->clip     = true;
+    primitive->clipRect = intersection;
+  }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------
